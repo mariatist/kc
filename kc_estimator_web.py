@@ -18,6 +18,7 @@ PRICING = {
     "유기주석화합물": {"base": 200000},
     "니트로사민": {"base": 220000},
     "2차전지": {"base": 1400000},
+    "나무 방부제": {"base": 220000, "add": 110000},
 }
 
 PRESET_PRODUCTS = {
@@ -36,8 +37,8 @@ preset = st.selectbox("제품 유형을 선택하세요 (표 9-1 기준)", ["선
 age = st.selectbox("제품 사용 연령", ["36개월 미만", "36~72개월", "72개월 이상"])
 purpose = st.selectbox("입에 넣는 용도 여부", ["예", "아니오"])
 rubber_use = st.selectbox("탄성고무 사용 여부", ["예", "아니오"])
-# material_input 제거
-# battery_use 제거
+is_wood = st.selectbox("나무 재질 포함 여부", ["예", "아니오"])
+is_wood_special = st.checkbox("3세미만 & 나무 완구 중 실내/입으로 작동/150g 이하 여부 포함")
 
 num_materials = st.number_input("재질 종류 수 (예: 플라스틱, 섬유 등)", min_value=1, step=1)
 color_counts = []
@@ -53,7 +54,8 @@ product_features = {
     "PVC 재질 포함 및 입에 넣는 용도": ["포스페이트계가소제", "유기주석화합물"] if purpose == "예" else [],
     "탄성고무 포함 제품": ["니트로사민"] if rubber_use == "예" else [],
     "섬유류 또는 염색부직포 제품": ["착색제", "1차방향성아민", "pH"],
-    "젤 또는 폼 재질 제품": ["방부제"],
+    "가죽, 액체, 점토, 접착성 모형문신(36개월 미만 아동용)": ["방부제"] if age == "36개월 미만" else [],
+    "3세 미만 실내용/입작동/150g 이하 나무 완구": ["나무 방부제"] if is_wood == "예" and is_wood_special and age == "36개월 미만" else [],
 }
 selected_tests = []
 
@@ -74,12 +76,15 @@ optional_keys = [
     ("염색 섬유류 완구", "1차방향성아민"),
     ("젤 또는 폼형태 완구", "방부제"),
     ("염색 섬유류 완구", "pH"),
+    ("36개월 미만 가죽/액체/점토형 접착류", "방부제"),
+    ("3세미만 실내용 또는 입작동 또는 150g 이하의 나무 완구", "나무 방부제"),
 ]
 for desc, key in optional_keys:
     if st.checkbox(f"{desc} → {key} 시험 포함"):
         selected_tests.append(key)
 
 # 시험 항목 수량 계산
+
 def calculate_pricing(color_counts, selected_tests):
     results = []
     total_colors = sum(color_counts)
@@ -105,7 +110,7 @@ def calculate_pricing(color_counts, selected_tests):
 
     # 선택 및 조건 포함 항목 적용
     for key in set(selected_tests):
-        if key in ["착색제", "1차방향성아민", "방부제", "pH"]:
+        if key in ["착색제", "1차방향성아민", "방부제", "pH", "나무 방부제"]:
             apply_tiered_pricing(key, repeat_unit=num_reagents)
         elif key in PRICING:
             results.append((key, PRICING[key]["base"]))
