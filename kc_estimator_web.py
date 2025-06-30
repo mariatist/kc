@@ -36,9 +36,8 @@ preset = st.selectbox("제품 유형을 선택하세요 (표 9-1 기준)", ["선
 age = st.selectbox("제품 사용 연령", ["36개월 미만", "36~72개월", "72개월 이상"])
 purpose = st.selectbox("입에 넣는 용도 여부", ["예", "아니오"])
 rubber_use = st.selectbox("탄성고무 사용 여부", ["예", "아니오"])
-battery_use = st.selectbox("2차전지 포함 여부", ["예", "아니오"])
-material_input = st.text_input("재질 입력 (쉼표로 구분, 예: PVC, 섬유, 젤)")
-material_types = [m.strip() for m in material_input.split(",") if m.strip()]
+# material_input 제거
+# battery_use 제거
 
 num_materials = st.number_input("재질 종류 수 (예: 플라스틱, 섬유 등)", min_value=1, step=1)
 color_counts = []
@@ -51,11 +50,10 @@ for i in range(num_materials):
 st.write("### 제품 특성 체크 (표 9-1 기준)")
 product_features = {
     "입에 넣을 수 있는 제품 (polymeric, 입에 닿는 제품)": ["모노머", "솔벤트용출"] if purpose == "예" else [],
-    "PVC 재질 포함 및 입에 넣는 용도 (PVC + purpose=예)": ["포스페이트계가소제", "유기주석화합물"] if "PVC" in material_types and purpose == "예" else [],
-    "탄성고무 포함 제품 (rubber)": ["니트로사민"] if rubber_use == "예" else [],
-    "2차전지 포함 제품 (배터리)": ["2차전지"] if battery_use == "예" else [],
-    "섬유류 또는 염색부직포 제품": ["착색제", "1차방향성아민", "pH"] if any(x in material_types for x in ["섬유", "부직포"]) else [],
-    "젤 또는 폼 재질 제품": ["방부제"] if any(x in material_types for x in ["젤", "폼"]) else [],
+    "PVC 재질 포함 및 입에 넣는 용도": ["포스페이트계가소제", "유기주석화합물"] if purpose == "예" else [],
+    "탄성고무 포함 제품": ["니트로사민"] if rubber_use == "예" else [],
+    "섬유류 또는 염색부직포 제품": ["착색제", "1차방향성아민", "pH"],
+    "젤 또는 폼 재질 제품": ["방부제"],
 }
 selected_tests = []
 
@@ -70,16 +68,15 @@ for label, tests in product_features.items():
 # 선택적 항목 체크
 st.write("### 추가로 시험 포함을 원하는 항목 수동 체크")
 optional_keys = [
-    ("포스페이트계가소제", "PVC 재질이 입에 닿는 제품"),
-    ("유기주석화합물", "PVC 재질이 입에 닿는 제품"),
-    ("2차전지", "배터리 내장형 완구"),
-    ("착색제", "섬유류 완구"),
-    ("1차방향성아민", "염색 섬유류 완구"),
-    ("방부제", "젤 또는 폼형태 완구"),
-    ("pH", "염색 섬유류 완구"),
+    ("PVC 재질이 입에 닿는 제품", "포스페이트계가소제"),
+    ("PVC 재질이 입에 닿는 제품", "유기주석화합물"),
+    ("섬유류 완구", "착색제"),
+    ("염색 섬유류 완구", "1차방향성아민"),
+    ("젤 또는 폼형태 완구", "방부제"),
+    ("염색 섬유류 완구", "pH"),
 ]
-for key, desc in optional_keys:
-    if st.checkbox(f"{key} 시험 포함 ({desc})"):
+for desc, key in optional_keys:
+    if st.checkbox(f"{desc} → {key} 시험 포함"):
         selected_tests.append(key)
 
 # 시험 항목 수량 계산
