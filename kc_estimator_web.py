@@ -34,7 +34,7 @@ PRESET_PRODUCTS = {
 }
 
 # 인터페이스
-st.title("KC인증 셀프 견적 계산기")
+st.title("완구 시험수수료 셀프 계산기")
 preset = st.selectbox("제품 유형 (표 9-1 기준)", ["선택 안 함"] + list(PRESET_PRODUCTS.keys()))
 age = st.selectbox("제품 사용 연령", ["36개월 미만", "36~72개월", "72개월 이상"])
 purpose = st.selectbox("입에 넣는 용도 여부", ["예", "아니오"])
