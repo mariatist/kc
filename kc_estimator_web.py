@@ -37,39 +37,32 @@ for i in range(num_materials):
     count = st.number_input(f"재질 {i+1}번 색상 수 (최대 5색까지 적용)", min_value=1, max_value=10, step=1)
     color_counts.append(min(count, 5))
 
+# 제품 특성 체크박스 (고시 기준 반영)
+st.write("### 제품 특성 체크 (표 9-1 기준)")
+product_features = {
+    "입에 넣을 수 있는 제품": ["모노머", "솔벤트용출"],
+    "PVC 재질 포함 및 입에 넣는 용도": ["포스페이트계가소제", "유기주석화합물"] if "PVC" in material_types and purpose == "예" else [],
+    "탄성고무 포함": ["니트로사민"] if rubber_use == "예" else [],
+    "2차전지 포함": ["2차전지"] if battery_use == "예" else [],
+    "섬유류 또는 염색부직포": ["착색제", "1차방향성아민", "pH"] if any(x in material_types for x in ["섬유", "부직포"]) else [],
+    "젤 또는 폼 재질": ["방부제"] if any(x in material_types for x in ["젤", "폼"]) else [],
+}
+selected_tests = []
+
+for label, tests in product_features.items():
+    if tests:
+        st.markdown(f"- **{label}**: {', '.join(tests)}")
+        selected_tests.extend(tests)
+
 # 선택적 항목 체크
 st.write("### 추가로 시험 포함을 원하는 항목 수동 체크")
 optional_keys = [
     "포스페이트계가소제", "유기주석화합물", "2차전지",
     "착색제", "1차방향성아민", "방부제", "pH"
 ]
-selected_tests = []
 for key in optional_keys:
     if st.checkbox(f"{key} 시험 포함"):
         selected_tests.append(key)
-
-# 조건부 자동 포함 항목
-if purpose == "예":
-    selected_tests.append("모노머")
-    selected_tests.append("솔벤트용출")
-
-if rubber_use == "예":
-    selected_tests.append("니트로사민")
-
-if battery_use == "예":
-    selected_tests.append("2차전지")
-
-if any(m.lower() == "pvc" for m in material_types) and purpose == "예":
-    selected_tests.append("포스페이트계가소제")
-    selected_tests.append("유기주석화합물")
-
-if any(m in ["섬유", "염색부직포"] for m in material_types):
-    selected_tests.append("착색제")
-    selected_tests.append("1차방향성아민")
-    selected_tests.append("pH")
-
-if any(m in ["젤", "폼"] for m in material_types):
-    selected_tests.append("방부제")
 
 # 시험 항목 수량 계산
 def calculate_pricing(color_counts, selected_tests):
@@ -110,5 +103,5 @@ if st.button("견적 계산하기"):
     df["예상 비용 (원)"] = df["예상 비용 (원)"].apply(lambda x: f"{x:,.0f}원")
     st.write("### 예상 견적 결과")
     st.table(df)
-    total_cost = sum([int(e[1]) for e in estimate])
+    total_cost = sum([int(e[1].replace("원", "").replace(",", "")) for e in df.values])
     st.success(f"총 예상 견적: {total_cost:,.0f}원")
