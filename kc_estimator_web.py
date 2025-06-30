@@ -20,7 +20,17 @@ PRICING = {
     "2차전지": {"base": 1400000},
 }
 
+PRESET_PRODUCTS = {
+    "치발기": ["기계적·물리적 특성(기본)", "유해원소용출시험(19종)", "총납 + 총카드뮴", "모노머", "솔벤트용출", "프탈레이트 가소제시험(7종)"],
+    "전동차": ["기계적·물리적 특성(기본)", "유해원소용출시험(19종)", "총납 + 총카드뮴", "프탈레이트 가소제시험(7종)", "2차전지"],
+    "고무공": ["기계적·물리적 특성(기본)", "유해원소용출시험(19종)", "총납 + 총카드뮴", "니트로사민"],
+    "젤 완구": ["기계적·물리적 특성(기본)", "유해원소용출시험(19종)", "총납 + 총카드뮴", "방부제"],
+    "섬유인형": ["기계적·물리적 특성(기본)", "유해원소용출시험(19종)", "총납 + 총카드뮴", "착색제", "1차방향성아민", "pH"],
+}
+
 st.title("KC인증 셀프 견적 계산기 (전체 항목 포함)")
+
+preset = st.selectbox("제품 유형을 선택하세요 (표 9-1 기준)", ["선택 안 함"] + list(PRESET_PRODUCTS.keys()))
 
 # 사용자 입력
 age = st.selectbox("제품 사용 연령", ["36개월 미만", "36~72개월", "72개월 이상"])
@@ -40,14 +50,17 @@ for i in range(num_materials):
 # 제품 특성 체크박스 (고시 기준 반영)
 st.write("### 제품 특성 체크 (표 9-1 기준)")
 product_features = {
-    "입에 넣을 수 있는 제품": ["모노머", "솔벤트용출"],
-    "PVC 재질 포함 및 입에 넣는 용도": ["포스페이트계가소제", "유기주석화합물"] if "PVC" in material_types and purpose == "예" else [],
-    "탄성고무 포함": ["니트로사민"] if rubber_use == "예" else [],
-    "2차전지 포함": ["2차전지"] if battery_use == "예" else [],
-    "섬유류 또는 염색부직포": ["착색제", "1차방향성아민", "pH"] if any(x in material_types for x in ["섬유", "부직포"]) else [],
-    "젤 또는 폼 재질": ["방부제"] if any(x in material_types for x in ["젤", "폼"]) else [],
+    "입에 넣을 수 있는 제품 (polymeric, 입에 닿는 제품)": ["모노머", "솔벤트용출"] if purpose == "예" else [],
+    "PVC 재질 포함 및 입에 넣는 용도 (PVC + purpose=예)": ["포스페이트계가소제", "유기주석화합물"] if "PVC" in material_types and purpose == "예" else [],
+    "탄성고무 포함 제품 (rubber)": ["니트로사민"] if rubber_use == "예" else [],
+    "2차전지 포함 제품 (배터리)": ["2차전지"] if battery_use == "예" else [],
+    "섬유류 또는 염색부직포 제품": ["착색제", "1차방향성아민", "pH"] if any(x in material_types for x in ["섬유", "부직포"]) else [],
+    "젤 또는 폼 재질 제품": ["방부제"] if any(x in material_types for x in ["젤", "폼"]) else [],
 }
 selected_tests = []
+
+if preset != "선택 안 함":
+    selected_tests.extend(PRESET_PRODUCTS[preset])
 
 for label, tests in product_features.items():
     if tests:
@@ -57,11 +70,16 @@ for label, tests in product_features.items():
 # 선택적 항목 체크
 st.write("### 추가로 시험 포함을 원하는 항목 수동 체크")
 optional_keys = [
-    "포스페이트계가소제", "유기주석화합물", "2차전지",
-    "착색제", "1차방향성아민", "방부제", "pH"
+    ("포스페이트계가소제", "PVC 재질이 입에 닿는 제품"),
+    ("유기주석화합물", "PVC 재질이 입에 닿는 제품"),
+    ("2차전지", "배터리 내장형 완구"),
+    ("착색제", "섬유류 완구"),
+    ("1차방향성아민", "염색 섬유류 완구"),
+    ("방부제", "젤 또는 폼형태 완구"),
+    ("pH", "염색 섬유류 완구"),
 ]
-for key in optional_keys:
-    if st.checkbox(f"{key} 시험 포함"):
+for key, desc in optional_keys:
+    if st.checkbox(f"{key} 시험 포함 ({desc})"):
         selected_tests.append(key)
 
 # 시험 항목 수량 계산
