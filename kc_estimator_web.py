@@ -59,7 +59,7 @@ if rubber_use == "예":
 if battery_use == "예":
     selected_tests.append("2차전지")
 
-if any(m in ["PVC", "pvc"] for m in material_types) and purpose == "예":
+if any(m.lower() == "pvc" for m in material_types) and purpose == "예":
     selected_tests.append("포스페이트계가소제")
     selected_tests.append("유기주석화합물")
 
@@ -107,8 +107,7 @@ def calculate_pricing(color_counts, selected_tests):
 if st.button("견적 계산하기"):
     estimate = calculate_pricing(color_counts, selected_tests)
     df = pd.DataFrame(estimate, columns=["시험 항목", "예상 비용 (원)"])
-    df["예상 비용 (원)"] = df["예상 비용 (원)"]\
-.apply(lambda x: f"{x:,.0f}원")
+    df["예상 비용 (원)"] = df["예상 비용 (원)"].apply(lambda x: f"{x:,.0f}원")
     st.write("### 예상 견적 결과")
     st.table(df)
     total_cost = sum([int(e[1]) for e in estimate])
