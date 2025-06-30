@@ -32,8 +32,20 @@ for i in range(num_materials):
     count = st.number_input(f"재질 {i+1}번 색상 수 (최대 5색까지 적용)", min_value=1, max_value=10, step=1)
     color_counts.append(min(count, 5))
 
+# 선택적 항목 체크
+st.write("### 해당되는 시험 항목 체크")
+optional_keys = [
+    "모노머", "솔벤트용출", "포스페이트계가소제",
+    "유기주석화합물", "니트로사민", "2차전지",
+    "착색제", "1차방향성아민", "방부제", "pH"
+]
+selected_tests = []
+for key in optional_keys:
+    if st.checkbox(f"{key} 시험 포함"):
+        selected_tests.append(key)
+
 # 시험 항목 수량 계산
-def calculate_pricing(color_counts):
+def calculate_pricing(color_counts, selected_tests):
     results = []
     total_colors = sum(color_counts)
     num_reagents = num_materials
@@ -56,26 +68,20 @@ def calculate_pricing(color_counts):
     apply_tiered_pricing("기계적·물리적 특성(기본)")
     apply_tiered_pricing("인증서 발급비")
 
-    # 단순 고정 항목들 추가
-    for key in [
-        "모노머", "솔벤트용출", "포스페이트계가소제", 
-        "유기주석화합물", "니트로사민", "2차전지"]:
-        if key in PRICING:
+    # 사용자가 선택한 항목만 적용
+    for key in selected_tests:
+        if key in ["착색제", "1차방향성아민", "방부제", "pH"]:
+            apply_tiered_pricing(key, repeat_unit=num_materials)
+        elif key in PRICING:
             results.append((key, PRICING[key]["base"]))
-
-    # 추가가 존재하는 기타 항목들
-    apply_tiered_pricing("착색제", repeat_unit=num_materials)
-    apply_tiered_pricing("1차방향성아민", repeat_unit=num_materials)
-    apply_tiered_pricing("방부제", repeat_unit=num_materials)
-    apply_tiered_pricing("pH", repeat_unit=num_materials)
 
     return results
 
 if st.button("견적 계산하기"):
-    estimate = calculate_pricing(color_counts)
+    estimate = calculate_pricing(color_counts, selected_tests)
     df = pd.DataFrame(estimate, columns=["시험 항목", "예상 비용 (원)"])
     df["예상 비용 (원)"] = df["예상 비용 (원)"].apply(lambda x: f"{x:,.0f}원")
     st.write("### 예상 견적 결과")
     st.table(df)
     total_cost = sum([e[1] for e in estimate])
-    st.success(f"총 예상 견적: {total_cos_cost:,.0f}원")
+    st.success(f"총 예상 견적: {total_cost:,.0f}원")
