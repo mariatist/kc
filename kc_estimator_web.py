@@ -78,4 +78,4 @@ if st.button("견적 계산하기"):
     st.write("### 예상 견적 결과")
     st.table(df)
     total_cost = sum([e[1] for e in estimate])
-    st.success(f"총 예상 견적: {total_cos_
+    st.success(f"총 예상 견적: {total_cos_cost:,.0f}원")
